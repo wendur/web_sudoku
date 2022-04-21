@@ -4,16 +4,10 @@ import random
 
 
 class SudokuSolver:
-    def __init__(self, filename="puzzle.txt", size=9, amount=None):
+    def __init__(self, grid, size):
+        self.grid = grid
         self.size = size
-        self.grid = []
-        if amount is not None:
-            self.generate_sudoku(amount)
-        else:
-            self.create_grid(filename)
-        # self.temp_grid = self.grid
 
-    # доработать возможно?
     def generate_sudoku(self, amount):
         for i in range(self.size):
             row = ['.' for j in range(self.size)]
@@ -32,6 +26,7 @@ class SudokuSolver:
                 a += 1
 
     def create_grid(self, filename):
+        self.grid = []
         numbers = '.'
         for i in range(self.size):
             numbers += str(i + 1)
@@ -76,6 +71,7 @@ class SudokuSolver:
                 str_out += str(self.grid[i][j]) + ' '
             str_out += '\n'
         return str_out
+
     def get_row(self, pos, temp_grid=None):
         row, col = pos
         if temp_grid is None:
@@ -114,10 +110,10 @@ class SudokuSolver:
         for i in range(self.size):
             for j in range(self.size):
                 if temp_grid is None:
-                    if self.grid[i][j] == '.':
+                    if self.grid[i][j] == '':
                         return True
                 else:
-                    if temp_grid[i][j] == '.':
+                    if temp_grid[i][j] == '':
                         return True
         return False
 
@@ -125,11 +121,11 @@ class SudokuSolver:
         for i in range(self.size):
             for j in range(self.size):
                 if temp_grid is None:
-                    if self.grid[i][j] == '.':
+                    if self.grid[i][j] == '':
                         pos = (i, j)
                         return pos
                 else:
-                    if temp_grid[i][j] == '.':
+                    if temp_grid[i][j] == '':
                         pos = (i, j)
                         return pos
 
@@ -138,6 +134,7 @@ class SudokuSolver:
         for i in range(self.size):
             numbers.append(str(i + 1))
         values = set(numbers)
+
         if temp_grid is None:
             row = self.get_row(pos)
             col = self.get_col(pos)
@@ -156,13 +153,19 @@ class SudokuSolver:
 
     def __solve(self, grid):
         # grid = self.grid
+        # print(self.get_text())
         temp_grid = copy.deepcopy(grid)
+
+        if not self.check_identity():
+            return grid
 
         if self.check_empty_positions(grid):
             pos = self.find_empty_positions(grid)
         else:
             return grid
         values = self.find_possible_values(pos, grid)
+
+
 
         row, col = pos
 
@@ -175,6 +178,35 @@ class SudokuSolver:
                 grid = copy.deepcopy(temp_grid)
 
         return grid
+
+    def check_identity(self):
+        rows = []
+        cols = []
+        block = []
+        for i in range(self.size):
+            rows = copy.deepcopy(self.get_row((i, i)))
+            cols = copy.deepcopy(self.get_col((i, i)))
+            for j in range(len(rows)-1, 0, -1):
+                if rows[j] == '':
+                    rows.pop(j)
+            for j in range(len(cols)-1, 0, -1):
+                if cols[j] == '':
+                    cols.pop(j)
+            if len(rows) != len(set(rows)) or len(cols) != len(set(cols)):
+                return False
+
+        row = int(math.sqrt(self.size))
+        col = int(math.sqrt(self.size))
+        for i in range(row):
+            for j in range(col):
+                block = copy.deepcopy(self.get_block((i * row, j * col)))
+                for g in range(len(block)-1, 0, -1):
+                    if block[g] == '':
+                        block.pop(g)
+                if len(block) != len(set(block)):
+                    return False
+
+        return True
 
     def check_solution(self):
         numbers = []
@@ -199,17 +231,3 @@ class SudokuSolver:
                     return False
 
         return True
-
-
-"""sud = SudokuSolver()
-print(sud.display())
-print(sud.get_col((0, 4)))
-print((sud.get_block((5, 5))))
-print(sud.check_empty_positions())
-print(sud.find_empty_positions())
-# print(sud.find_possible_values((0, 3)))
-sud.find_solution()
-print(sud.display())
-print(sud.check_solution())"""
-
-
